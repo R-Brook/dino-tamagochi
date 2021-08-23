@@ -4,7 +4,7 @@ import Head from "next/head"
 import { Screen } from "../components/Screen/Screen"
 import { Button } from "../components/Button/Button"
 import { Shell } from "../components/Shell/Shell"
-import { format, differenceInCalendarDays, parseISO } from "date-fns"
+import { useTime } from "../services/time/index"
 
 const Home: NextPage = () => {
   const [health, setHealth] = React.useState(3)
@@ -14,35 +14,11 @@ const Home: NextPage = () => {
   const [isAwake, setIsAwake] = React.useState(true)
   const [hungry, setHungry] = React.useState(false)
 
-  const timeReducer = (state, action) => {
-    switch (action.type) {
-      case "IncrementDay":
-        const firstDay = parseISO("2021-08-23") // Temp. Need localforage start date.
-        const currentDay = new Date()
-        const dayDiff = differenceInCalendarDays(currentDay, firstDay) + 1
-        return dayDiff
-      case "IncrementHour":
-        return parseInt(format(new Date(), "k"))
-      default:
-        return state
-    }
-  }
-
-  const [dayNumber, setDayNumber] = React.useReducer(timeReducer, 1)
-  const [currentDayHour, getCurrentDayHour] = React.useReducer(timeReducer, 0)
+  const time = useTime()
 
   React.useEffect(() => {
-    setInterval(() => {
-      setDayNumber({ type: "IncrementDay" })
-      getCurrentDayHour({ type: "IncrementHour" })
-    }, 1000)
-  }, [])
-
-  React.useEffect(() => {
-    currentDayHour >= 9 && currentDayHour < 21
-      ? setIsAwake(true)
-      : setIsAwake(false)
-  }, [currentDayHour])
+    time.hour >= 9 && time.hour < 21 ? setIsAwake(true) : setIsAwake(false)
+  }, [time.hour])
 
   return (
     <div className="max-w-full text-center">
@@ -73,8 +49,8 @@ const Home: NextPage = () => {
             <span>States</span>
 
             <ul className="text-left">
-              <li>Day: {dayNumber}</li>
-              <li>Current day hour: {currentDayHour}</li>
+              <li>Day: {time.day}</li>
+              <li>Current day hour: {time.hour}</li>
               <li>Awake/asleep: {isAwake ? "Awake" : "Asleep"}</li>
               <li>Hungry/full: {hungry ? "Hungry" : "Full"}</li>
               <li>
